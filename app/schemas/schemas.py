@@ -6,3 +6,10 @@ class McForSearchSchema(BaseModel):
     mcTitle: str
     keyPhrases: list[str]
     description: str
+
+
+class SplitPredictionRequest(BaseModel):
+    itemId: int
+    mcId: int
+    mcTitle: str
+    description: str

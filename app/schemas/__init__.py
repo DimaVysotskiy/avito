@@ -1,5 +1,6 @@
-from .schemas import McForSearchSchema
+from .schemas import McForSearchSchema, SplitPredictionRequest
 
 __all__ = [
-    'McForSearchSchema'
+    'McForSearchSchema',
+    'SplitPredictionRequest'
 ]
