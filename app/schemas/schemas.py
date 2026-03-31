@@ -7,6 +7,12 @@ class McForSearchSchema(BaseModel):
     keyPhrases: list[str]
     description: str
 
+class McForSearchSchemaNorm(BaseModel):
+    mcId: int
+    mcTitle: str
+    keyPhrases: list[list[str]]
+    description: str
+
 
 class SplitPredictionRequest(BaseModel):
     itemId: int

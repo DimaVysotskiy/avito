@@ -1,33 +1,50 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from .core.settings import settings
-from .mc_search_dataset import McSearchDataset
+from .core.mc_reference import McReference
+from .core.detector import McCandidateDetector
 from .schemas import SplitPredictionRequest
-from .core.text_normalizator import text_normalizator
+
 
 
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    app.state.mc_dataset = McSearchDataset(path=settings.path_to_mc_search_dataset, encoding=settings.encoding_to_mc_search_dataset_csv)
+    mc_dataset = McReference(
+        path=settings.path_to_mc_search_dataset,
+        encoding=settings.encoding_to_mc_search_dataset_csv,
+    )
+    app.state.detector = McCandidateDetector(mc_dataset.get_data())
     yield
-    
+
+
+
+
 
 app = FastAPI(lifespan=lifespan)
 
 
 
-@app.post("/main")
-
-async def main(request: SplitPredictionRequest):
-    norm_text = text_normalizator(request.description)
-    return norm_text
 
 
+@app.post("/detect")
+async def detect(request: SplitPredictionRequest):
+    
+    detector: McCandidateDetector = app.state.detector
+    candidates = detector.detect(
+        raw_text=request.description,
+        source_mc_id=request.mcId,
+    )
 
-@app.get("/microcategories")
-async def get_microcategories():
-    dataset = app.state.mc_dataset
-    data = dataset.get_data()
-    return data
+    return {
+        "detectedMcIds": [c.mc_id for c in candidates],
+        "candidates": [
+            {
+                "mcId": c.mc_id,
+                "mcTitle": c.mc_title,
+                "matchedPhrases": c.matched_phrases,
+            }
+            for c in candidates
+        ],
+    }

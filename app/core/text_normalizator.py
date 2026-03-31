@@ -1,3 +1,5 @@
+import re
+import unicodedata
 import pymorphy3
 import nltk
 from nltk.tokenize import word_tokenize
@@ -6,19 +8,34 @@ from nltk.corpus import stopwords
 
 
 
-def preprocess(text: str) -> list[str]:
-    punctuation_marks = ['!', ',', '(', ')', ':', '-', '?', '.', '..', '...']
-    stop_words = stopwords.words("russian")
-    morph = pymorphy3.MorphAnalyzer()
-    tokens = word_tokenize(text.lower(), language="russian")
+_morph = pymorphy3.MorphAnalyzer()
+_stop_words = set(stopwords.words("russian"))
+_punct = {'!', ',', '(', ')', ':', '-', '?', '.', '..', '...'}
 
-    preprocessed_text = []
+
+
+
+def _clean(text: str) -> str:
+    """Заменяем разделители и мусор на пробелы, нормализуем unicode."""
+    text = unicodedata.normalize("NFC", text)
+    text = re.sub(r'[/\\|;+]', ' ', text)   # слеши и разделители → пробел
+    text = re.sub(r'\s+', ' ', text)
+    return text.strip()
+
+
+def preprocess(text: str) -> list[str]:
+    tokens = word_tokenize(_clean(text).lower(), language="russian")
+    result = []
     for token in tokens:
-        if token not in punctuation_marks:
-            lemma = morph.parse(token)[0].normal_form
-            if lemma not in stop_words:
-                preprocessed_text.append(lemma)
-    return preprocessed_text
+        if token in _punct:
+            continue
+        lemma = _morph.parse(token)[0].normal_form
+        if lemma not in _stop_words:
+            result.append(lemma)
+    return result
+
+
+
 
 
 text_normalizator = preprocess
