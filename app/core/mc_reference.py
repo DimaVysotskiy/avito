@@ -12,9 +12,9 @@ class McReference:
         self.path = path
         self.encoding = encoding
         self.data: List[McForSearchSchema] = []
-        self.norm_data: List[dict[str, Any]] = []
+        self.norm_data: List[dict[str, Any]] = [] # Нормализованные ключевые фразы для быстрого поиска по леммам
         self._load_csv()
-        self._normalize_key_phrases()
+        self._normalize_key_phrases() 
 
 
     def _load_csv(self):

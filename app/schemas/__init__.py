@@ -1,6 +1,19 @@
-from .schemas import McForSearchSchema, SplitPredictionRequest
+from .schemas import (
+    McForSearchSchema,
+    SplitPredictionRequest,
+    CandidateMc,
+    DraftSchema,
+    SplitPredictionResponse,
+    DetectorResponse,
+    DraftResponse
+)
 
 __all__ = [
     'McForSearchSchema',
-    'SplitPredictionRequest'
+    'SplitPredictionRequest',
+    'CandidateMc',
+    'DraftSchema',
+    'SplitPredictionResponse',
+    'DetectorResponse',
+    'DraftResponse'
 ]

@@ -1,25 +1,14 @@
-from dataclasses import dataclass, field
 from typing import List
-
-from ..schemas import McForSearchSchema
+from ..schemas import McForSearchSchema, CandidateMc, DetectorResponse
 from .text_normalizator import text_normalizator
 
 
-@dataclass
-class CandidateMc:
-    mc_id: int
-    mc_title: str
-    matched_phrases: List[str] = field(default_factory=list)
 
 
 class McCandidateDetector:
-    """
-    Инициализируется один раз при старте приложения.
-    Кэширует лемматизированные ключевые фразы всех микрокатегорий.
-    """
     def __init__(self, mc_data: List[McForSearchSchema]):
         self._mc_titles: dict[int, str] = {}
-        self._mc_phrases: dict[int, list[tuple[list[str], str]]] = {} # { mc_id : ([леммы фразы], оригинал фразы) }
+        self._mc_phrases: dict[int, list[tuple[list[str], str]]] = {}
 
         for mc in mc_data:
             self._mc_titles[mc.mcId] = mc.mcTitle
@@ -30,14 +19,10 @@ class McCandidateDetector:
             ]
 
 
-    def detect(self, raw_text: str, source_mc_id: int) -> List[CandidateMc]:
-        """
-        Ищем все МК (кроме source_mc_id) в тексте объявления.
-        Возвращаем кандидатов, отсортированных по количеству совпавших фраз.
-        """
+    def detect(self, raw_text: str, source_mc_id: int) -> DetectorResponse | None:
+        
         lemmas = text_normalizator(raw_text)
         n = len(lemmas)
-
         candidates: dict[int, CandidateMc] = {}
 
         for mc_id, phrases in self._mc_phrases.items():
@@ -55,8 +40,17 @@ class McCandidateDetector:
                             candidates[mc_id] = CandidateMc(
                                 mc_id=mc_id,
                                 mc_title=self._mc_titles[mc_id],
+                                matched_phrases=[]
                             )
                         candidates[mc_id].matched_phrases.append(phrase_orig)
-                        break  # одно вхождение фразы достаточно
+                        break
+        
+        if not candidates:
+            return None
 
-        return sorted(candidates.values(), key=lambda c: len(c.matched_phrases), reverse=True)
+        sorted_candidates = sorted(candidates.values(), key=lambda c: len(c.matched_phrases), reverse=True)
+
+        return DetectorResponse(
+            detectedMcIds=[c.mc_id for c in sorted_candidates],
+            detected_mc=sorted_candidates
+        )

@@ -1,0 +1,17 @@
+[project]
+name = "avito"
+version = "0.1.0"
+description = "Avito classification project"
+readme = "IT_Purple_Avito.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[standard]",
+    "pydantic-settings",
+    "nltk",
+    "pymorphy3",
+    "google-genai",
+    "google>=3.0.0",
+]
+
+[tool.uv]
+managed = true
