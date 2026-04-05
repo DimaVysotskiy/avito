@@ -1,8 +1,9 @@
+import logging
 from typing import List
 from ..schemas import McForSearchSchema, CandidateMc, DetectorResponse
 from .text_normalizator import text_normalizator
 
-
+logger = logging.getLogger("uvicorn.error")
 
 
 class McCandidateDetector:
@@ -20,8 +21,11 @@ class McCandidateDetector:
 
 
     def detect(self, raw_text: str, source_mc_id: int) -> DetectorResponse | None:
-        
+
+        logger.info("Detector | Нормализация текста (%d символов)...", len(raw_text))
         lemmas = text_normalizator(raw_text)
+        logger.info("Detector | Леммы (%d): %s", len(lemmas), lemmas)
+
         n = len(lemmas)
         candidates: dict[int, CandidateMc] = {}
 
@@ -43,12 +47,23 @@ class McCandidateDetector:
                                 matched_phrases=[]
                             )
                         candidates[mc_id].matched_phrases.append(phrase_orig)
+                        logger.debug(
+                            "Detector | Совпадение: mc_id=%d (%s)  фраза='%s'  леммы=%s  позиция=%d",
+                            mc_id, self._mc_titles[mc_id], phrase_orig, phrase_lemmas, i,
+                        )
                         break
         
         if not candidates:
+            logger.info("Detector | Кандидатов не найдено")
             return None
 
         sorted_candidates = sorted(candidates.values(), key=lambda c: len(c.matched_phrases), reverse=True)
+
+        for c in sorted_candidates:
+            logger.info(
+                "Detector | Кандидат mc_id=%d (%s)  совпадений=%d  фразы=%s",
+                c.mc_id, c.mc_title, len(c.matched_phrases), c.matched_phrases,
+            )
 
         return DetectorResponse(
             detectedMcIds=[c.mc_id for c in sorted_candidates],

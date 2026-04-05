@@ -1,9 +1,10 @@
 import csv
+import logging
 from typing import List, Any
 from ..schemas.schemas import McForSearchSchema, McForSearchSchemaNorm
 from .text_normalizator import text_normalizator
 
-
+logger = logging.getLogger("uvicorn.error")
 
 
 class McReference:
@@ -13,8 +14,14 @@ class McReference:
         self.encoding = encoding
         self.data: List[McForSearchSchema] = []
         self.norm_data: List[dict[str, Any]] = [] # Нормализованные ключевые фразы для быстрого поиска по леммам
+
+        logger.info("McReference | Загрузка справочника из %s (encoding=%s)", path, encoding)
         self._load_csv()
-        self._normalize_key_phrases() 
+        logger.info("McReference | Загружено %d микрокатегорий", len(self.data))
+
+        self._normalize_key_phrases()
+        total_phrases = sum(len(item.keyPhrases) for item in self.norm_data)
+        logger.info("McReference | Нормализовано %d ключевых фраз", total_phrases)
 
 
     def _load_csv(self):

@@ -1,11 +1,12 @@
 import re
+import logging
 import unicodedata
 import pymorphy3
 import nltk
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 
-
+logger = logging.getLogger("uvicorn.error")
 
 
 _morph = pymorphy3.MorphAnalyzer()
@@ -24,7 +25,12 @@ def _clean(text: str) -> str:
 
 
 def preprocess(text: str) -> list[str]:
-    tokens = word_tokenize(_clean(text).lower(), language="russian")
+    cleaned = _clean(text)
+    logger.debug("Normalizer | Очищенный текст: '%s'", cleaned)
+
+    tokens = word_tokenize(cleaned.lower(), language="russian")
+    logger.debug("Normalizer | Токены (%d): %s", len(tokens), tokens)
+
     result = []
     for token in tokens:
         if token in _punct:
@@ -32,8 +38,9 @@ def preprocess(text: str) -> list[str]:
         lemma = _morph.parse(token)[0].normal_form
         if lemma not in _stop_words:
             result.append(lemma)
-    return result
 
+    logger.debug("Normalizer | Леммы (%d): %s", len(result), result)
+    return result
 
 
 

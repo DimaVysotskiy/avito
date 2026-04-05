@@ -5,7 +5,8 @@ from .schemas import (
     DraftSchema,
     SplitPredictionResponse,
     DetectorResponse,
-    DraftResponse
+    DraftResponse,
+    InfoToLLM
 )
 
 __all__ = [
@@ -15,5 +16,6 @@ __all__ = [
     'DraftSchema',
     'SplitPredictionResponse',
     'DetectorResponse',
-    'DraftResponse'
+    'DraftResponse',
+    'InfoToLLM'
 ]

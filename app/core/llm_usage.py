@@ -1,5 +1,8 @@
+import json
+
 from google.genai import Client
-from ..schemas import SplitPredictionRequest, CandidateMc, DraftResponse
+from ..schemas import SplitPredictionRequest, CandidateMc, DraftResponse, InfoToLLM
+from .settings import settings
 
 
 SYSTEM_PROMPT = """Ты — эксперт по классификации объявлений на сайте с объявлениями, категория «Ремонт и отделка».
@@ -54,5 +57,44 @@ SYSTEM_PROMPT = """Ты — эксперт по классификации об�
 """
 
 
-async def llm_usage(client: Client, request: SplitPredictionRequest, candidates: list[CandidateMc]) -> DraftResponse:
-    ... 
+def build_user_prompt(
+    request: SplitPredictionRequest,
+    candidates: list[CandidateMc],
+) -> str:
+    """Формирует JSON-строку для пользовательского промпта из запроса и кандидатов."""
+    info = InfoToLLM(
+        main_mc_id=request.mcId,
+        main_mc_title=request.mcTitle,
+        description=request.description,
+        candidates_ids=[c.mc_id for c in candidates],
+        candidates=candidates,
+    )
+    return info.model_dump_json(indent=2)
+
+
+async def llm_usage(
+    client: Client,
+    request: SplitPredictionRequest,
+    candidates: list[CandidateMc],
+) -> DraftResponse:
+    """
+    Отправляет запрос к Gemini и возвращает структурированный ответ.
+
+    Клиент `client` создаётся один раз в lifespan и переиспользуется
+    из `app.state.llm` без повторной инициализации.
+    """
+    user_prompt = build_user_prompt(request, candidates)
+
+    response = await client.aio.models.generate_content(
+        model=settings.gemini_model,
+        contents=user_prompt,
+        config={
+            "system_instruction": SYSTEM_PROMPT,
+            "response_mime_type": "application/json",
+        },
+    )
+
+    raw_text = response.text.strip()
+    parsed = json.loads(raw_text)
+
+    return DraftResponse(**parsed)

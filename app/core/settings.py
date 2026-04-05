@@ -22,5 +22,8 @@ class Settings(BaseSettings):
     gemini_api_key: str
     gemini_model: str = "gemini-2.5-flash-lite"
 
+    # Proxy (optional, for geo-restricted regions)
+    proxy_url: str | None = None
+
 
 settings = Settings()
