@@ -1,7 +1,7 @@
-import time
 import logging
 
-from fastapi import FastAPI, Body, Request, Response
+from fastapi import FastAPI, Body
+from fastapi.concurrency import run_in_threadpool
 from contextlib import asynccontextmanager
 
 from .core.settings import settings
@@ -89,14 +89,16 @@ PREDICT_EXAMPLE = {
 async def predict(
     request: SplitPredictionRequest = Body(openapi_examples=PREDICT_EXAMPLE),
 ):
-    # Первичная работа детектора над текстом
+    # Первичная работа детектора над текстом (передана в потоки, чтобы не блокировать event loop CPU-вычислениями)
     detector: McCandidateDetector = app.state.detector
 
     logger.info(
         f"Detector | itemId={request.itemId}  mcId={request.mcId}  text_len={len(request.description)}",
     )
 
-    detector_response = detector.detect(
+
+    detector_response = await run_in_threadpool(
+        detector.detect,
         raw_text=request.description,
         source_mc_id=request.mcId,
     )

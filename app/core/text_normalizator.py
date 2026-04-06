@@ -5,12 +5,14 @@ import pymorphy3
 import spacy
 from functools import lru_cache
 
+
+
+
+
 logger = logging.getLogger("uvicorn.error")
 
 _morph = pymorphy3.MorphAnalyzer()
 
-# Используем пустую русскую модель SpaCy для очень быстрой C-токенизации
-# Это работает без загрузки тяжелых моделей и умеет определять стоп-слова и пунктуацию
 nlp = spacy.blank("ru")
 
 
