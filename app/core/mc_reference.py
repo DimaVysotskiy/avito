@@ -15,13 +15,13 @@ class McReference:
         self.data: List[McForSearchSchema] = []
         self.norm_data: List[dict[str, Any]] = [] # Нормализованные ключевые фразы для быстрого поиска по леммам
 
-        logger.info("McReference | Загрузка справочника из %s (encoding=%s)", path, encoding)
+        logger.info(f"McReference | Загрузка справочника из {path} (encoding={encoding})")
         self._load_csv()
-        logger.info("McReference | Загружено %d микрокатегорий", len(self.data))
+        logger.info(f"McReference | Загружено {len(self.data)} микрокатегорий")
 
         self._normalize_key_phrases()
         total_phrases = sum(len(item.keyPhrases) for item in self.norm_data)
-        logger.info("McReference | Нормализовано %d ключевых фраз", total_phrases)
+        logger.info(f"McReference | Нормализовано {total_phrases} ключевых фраз")
 
 
     def _load_csv(self):

@@ -12,6 +12,7 @@ dependencies = [
     "google-genai",
     "google>=3.0.0",
     "socksio>=1.0.0",
+    "spacy>=3.8.14",
 ]
 
 [tool.uv]
